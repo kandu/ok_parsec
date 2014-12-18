@@ -1,0 +1,2 @@
+<fa.ml>: package(batteries), package(ocamlgraph)
+<*.{byte,native}>: package(batteries), package(ocamlgraph)

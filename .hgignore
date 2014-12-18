@@ -1,0 +1,18 @@
+syntax: glob
+
+_log
+_build
+*.native
+*.byte
+**/*.annot
+
+**/.\#*
+**/*~
+**/Session.vim
+**/.*.swp
+
+**/*.o
+**/*.a
+**/*.so
+**/*.cm*
+
