@@ -86,7 +86,7 @@ let str2reg str=
   in
   initBuffer str |> buf2reg
 
-let rec reg2nfa:regexp->nfa= fun reg->
+let rec reg2nfa reg=
   match reg with
   | Ce->
     let g= G.create () in
@@ -178,4 +178,64 @@ let nfa2dfa (nfa:nfa)=
   let head,_= nfa2dfa NodeSetMap.empty start in
   { graph= dfaG;
     head; }
+
+let dfa2sm (dfa:dfa)=
+  let getLabel e=
+    match G.E.label e with
+    | Edge.E-> raise @@ Invalid_argument "epsilon"
+    | Edge.C c-> c
+  in
+  let graph= dfa.graph in
+  let rec dfa2sm node traversed=
+    if NodeMap.mem node traversed then
+      (NodeMap.find node traversed, traversed)
+    else
+      let curr=
+        { id= object end;
+          isEnd= node.Node.isEnd;
+          next= CharMap.empty;
+        }
+      in
+      let traversed= NodeMap.add node curr traversed in
+      let (cm, traversed)= List.fold_left
+        (fun (cm, traversed) e->
+          let (sm, nextTraversed)= dfa2sm (G.E.dst e) traversed in
+          ( CharMap.add (getLabel e) sm cm,
+            NodeMap.merge
+              (fun key v1 v2->
+                match v1 with
+                | Some _-> v1
+                | None -> v2)
+            traversed
+            nextTraversed))
+        (CharMap.empty, traversed)
+        (G.succ_e graph node)
+      in
+      curr.next <- cm;
+      (curr, traversed)
+  in
+  let (sm, traversed)= dfa2sm dfa.head NodeMap.empty in
+  sm
+
+let make str= (dfa2sm (nfa2dfa (reg2nfa (str2reg str))))
+
+let match_re sm str offset=
+  let len= String.length str in
+  let rec match_re sm pos=
+    if pos >= len then
+      (sm.isEnd, [])
+    else
+      let curr= str.[pos] in
+      if CharMap.mem curr sm.next then
+        let next= CharMap.find str.[pos] sm.next in
+        let (ok, s)= match_re next (pos+1) in
+        if ok then
+          (ok, str.[pos] :: s)
+        else
+          (sm.isEnd, [])
+      else 
+        (sm.isEnd, [])
+  in
+  let (ok, result)= match_re sm offset in
+  (ok, BatString.of_list result)
 
