@@ -103,16 +103,21 @@ let many p=
 let many1 p=
   p >>= fun v-> many p |>> fun l-> v :: l
 
-let sepBy1 p sep=
+let sepBy1 sep p=
   p >>= fun head->
-  many (sep >> p) >>= fun body->
+  many1 (sep >> p) >>= fun body->
   return (head :: body)
 
-let sepBy p sep= sepBy1 p sep <|> return []
+let sepBy sep p= sepBy1 sep p <|> return []
 
-let sepEndBy p sep= many (p << sep)
+let sepEndBy sep p= many (p << sep)
 
-let sepEndBy1 p sep= many1 (p << sep)
+let sepEndBy1 sep p= many1 (p << sep)
+
+let opt default p=
+  p <|> return default
+
+let option p= p |>> (fun v-> Some v) <|> return None
 
 (* parser *)
 let eof state=
