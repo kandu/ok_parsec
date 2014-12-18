@@ -1,3 +1,5 @@
-<fa.ml>: package(batteries), package(ocamlgraph)
-<re.ml>: package(batteries)
-<*.{byte,native}>: package(batteries), package(ocamlgraph)
+<common.ml>: package(lwt), package(lwt.ppx)
+<fa.ml>: package(ocamlgraph)
+<re.ml>: package(batteries), package(lwt), package(ok_monad)
+<parsec.ml>: package(batteries), package(lwt), package(ok_monad)
+<test.{ml,byte,native}>: package(batteries), package(lwt.unix), package(ocamlgraph), package(ok_monad)

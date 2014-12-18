@@ -1,3 +1,4 @@
+open Common
 open Fa
 
 type buffer= {
@@ -219,23 +220,32 @@ let dfa2sm (dfa:dfa)=
 
 let make str= (dfa2sm (nfa2dfa (reg2nfa (str2reg str))))
 
-let match_re sm str offset=
-  let len= String.length str in
-  let rec match_re sm pos=
-    if pos >= len then
-      (sm.isEnd, [])
+let match_re sm= fun state->
+  let rec check sm (state:Common.state)=
+    if state.pos >= Buffer.length state.buf then
+      Lwt.return (sm.isEnd, [])
     else
-      let curr= str.[pos] in
+      let curr= Buffer.nth state.buf state.pos in
       if CharMap.mem curr sm.next then
-        let next= CharMap.find str.[pos] sm.next in
-        let (ok, s)= match_re next (pos+1) in
+        let next= CharMap.find curr sm.next in
+        let%m[@Lwt] (ok, s)= match_re next {state with pos= state.pos+1} in
         if ok then
-          (ok, str.[pos] :: s)
+          Lwt.return (ok, curr :: s)
         else
-          (sm.isEnd, [])
+          Lwt.return (sm.isEnd, [])
       else 
-        (sm.isEnd, [])
+        Lwt.return (sm.isEnd, [])
+  and match_re sm state=
+    let need= state.pos + 1 - (Buffer.length state.buf) in
+    if need > 0 then
+      let%m[@Lwt] state= input ~len:need state in
+      if state.pos + 1 - (Buffer.length state.buf) > 0 then
+        Lwt.return (sm.isEnd, [])
+      else
+        check sm state
+    else
+      check sm state
   in
-  let (ok, result)= match_re sm offset in
-  (ok, BatString.of_list result)
+  let%m[@Lwt] (ok, result)= match_re sm state in
+  Lwt.return (ok, BatString.of_list result)
 
