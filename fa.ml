@@ -16,6 +16,7 @@ module Node =
   end
 
 module NodeSet = Set.Make(Node)
+module NodeMap = Map.Make(Node)
 
 module NodeSetMap = Map.Make(NodeSet)
 
@@ -108,6 +109,20 @@ let genDot_d (fa:dfa)=
     "")
   ^ "}\n"
 
+module CharMap = Map.Make(Char)
+
+type sm=
+  { id: < >;
+    isEnd: bool;
+    mutable next: sm CharMap.t;
+  }
+
+module SmSet = Set.Make(
+  struct
+    type t= sm
+    let compare a b= compare (Oo.id a.id) (Oo.id b.id)
+  end)
+
 let dot_output_n g f =
   let oc = open_out f
   and dot= genDot_n g in
@@ -117,6 +132,46 @@ let dot_output_n g f =
 let dot_output_d g f =
   let oc = open_out f
   and dot= genDot_d g in
+  output_string oc dot;
+  close_out oc
+
+let genDot_sm (sm:sm)=
+  let rec gen node traversed=
+    if SmSet.mem node traversed then
+      ("", traversed)
+    else
+      let traversed= SmSet.add node traversed in
+      let (dot, set)=
+        (CharMap.fold
+          (fun c next (s, traversed)->
+            let (dot, traversed)= (gen next traversed) in
+            let s=
+              (Printf.sprintf "%d -> %d [label=\"%c\"]"
+                (Oo.id node.id)
+                (Oo.id next.id)
+                c)
+              ^ dot
+              ^ s
+            in
+            (s, traversed))
+          node.next
+          ("", traversed)
+        )
+      in
+      ( (Printf.sprintf "  %d [%s]\n"
+          (Oo.id node.id)
+          (if node.isEnd then "shape=doublecircle" else ""))
+        ^ dot
+        , set)
+  in
+  let (dot, _)= gen sm SmSet.empty in
+  "digraph G {\n  node [shape=circle]\n"
+  ^ dot
+  ^ "}\n"
+
+let dot_output_sm g f =
+  let oc = open_out f
+  and dot= genDot_sm g in
   output_string oc dot;
   close_out oc
 
@@ -135,6 +190,17 @@ let display_svg_d g=
   let tmp_dot= Filename.temp_file "graph" ".dot" in
   let tmp_svg= Filename.temp_file "fa" ".svg" in
   dot_output_d g tmp_dot;
+  sprintf "dot -Tsvg -o%s %s; xdg-open %s"
+    tmp_svg tmp_dot tmp_svg
+    |> Sys.command
+    |> ignore;
+  Sys.remove tmp_dot;
+  Sys.remove tmp_svg
+
+let display_svg_sm g=
+  let tmp_dot= Filename.temp_file "graph" ".dot" in
+  let tmp_svg= Filename.temp_file "fa" ".svg" in
+  dot_output_sm g tmp_dot;
   sprintf "dot -Tsvg -o%s %s; xdg-open %s"
     tmp_svg tmp_dot tmp_svg
     |> Sys.command
