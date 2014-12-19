@@ -24,5 +24,5 @@ clean:
 test: test.byte
 	./test.byte
 test.byte: test.ml
-	ocamlbuild -tags annot,debug j -use-ocamlfind $@
+	ocamlbuild -tags annot,debug -j $(jobs) -use-ocamlfind $@
 
