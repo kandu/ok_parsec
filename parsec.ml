@@ -184,3 +184,9 @@ let lowercase= satisfy (fun c->
 let uppercase= satisfy (fun c->
   'A' <= c && c <= 'Z')
 
+(* start parsing *)
+let parse_string parser str=
+  parser
+    (Common.initState
+      (Lwt_io.of_bytes ~mode:Lwt_io.input (Lwt_bytes.of_string str)))
+
