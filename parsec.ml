@@ -178,3 +178,9 @@ let num_hex= satisfy (fun c->
   || 'a' <= c && c <= 'f'
   || 'A' <= c && c <= 'F')
 
+let lowercase= satisfy (fun c->
+  'a' <= c && c <= 'z')
+
+let uppercase= satisfy (fun c->
+  'A' <= c && c <= 'Z')
+
