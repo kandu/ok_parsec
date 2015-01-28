@@ -103,6 +103,7 @@ let (>>=)= bind
 let (>>) p1 p2= p1 >>= fun _ -> p2
 let (<<) p1 p2= p1 >>= fun x-> p2 >> return x
 let (|>>) p f= p >>= fun v-> return (f v)
+let (>>$) p v= p >> return v
 
 let (<|>) (p1:'a parser) (p2:'a parser)= fun state->
   let%m[@Lwt] result= p1 state in
@@ -125,7 +126,7 @@ let many1 p=
 
 let sepBy1 sep p=
   p >>= fun head->
-  many1 (sep >> p) >>= fun body->
+  many (sep >> p) >>= fun body->
   return (head :: body)
 
 let sepBy sep p= sepBy1 sep p <|> return []
@@ -164,32 +165,16 @@ let eof state= Lwt.return
   else Failed (state.pos, "not eof"))
 
 let num_dec= satisfy (fun c->
-  let code= int_of_char c
-  and zero= int_of_char '0'
-  and nine= int_of_char '9'
-  in
-  zero <= code &&  code <= nine)
+  '0' <= c && c <= '9')
 
 let num_bin= satisfy (fun c->
   c = '0' || c = '1')
 
 let num_oct= satisfy (fun c->
-  let code= int_of_char c
-  and zero= int_of_char '0'
-  and seven= int_of_char '7'
-  in
-  zero <= code &&  code <= seven)
+  '0' <= c && c <= '7')
 
 let num_hex= satisfy (fun c->
-  let code= int_of_char c
-  and zero= int_of_char '0'
-  and nine= int_of_char '9'
-  and a= int_of_char 'a'
-  and f= int_of_char 'f'
-  and ca= int_of_char 'A'
-  and cf= int_of_char 'F'
-  in
-  zero <= code && code <= nine
-  || a <= code && code <= f
-  || ca <= code && code <= cf)
+  '0' <= c && c <= '9'
+  || 'a' <= c && c <= 'f'
+  || 'A' <= c && c <= 'F')
 
