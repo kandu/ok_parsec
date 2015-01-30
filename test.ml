@@ -14,13 +14,11 @@ let ()= Fa.display_svg_sm sm
 let main ()=
   let p= many (regexp sm) << notFollowedBy (string "m") "m" in
   begin%m[@Lwt]
-    (let chan= Lwt_io.of_string Lwt_io.input "aababbm" in
-    let%m[@Lwt] result= p (Common.initState chan) in
+    (let%m[@Lwt] result= parse_string p "aababbm" in
     Lwt.return (match result with
     | Ok (r, s)-> List.iter print_endline r
     | Failed (p, s)-> Printf.printf "at %d, %s\n" p s));
-    (let chan= Lwt_io.of_string Lwt_io.input "aababbn" in
-    let%m[@Lwt] result= p (Common.initState chan) in
+    (let%m[@Lwt] result= parse_string p "aababbn" in
     Lwt.return (match result with
     | Ok (r, s)-> List.iter print_endline r
     | Failed (p, s)-> Printf.printf "at %d, %s\n" p s));
