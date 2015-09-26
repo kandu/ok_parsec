@@ -1,4 +1,4 @@
-PKG ok_monad
+PKG ppx_ok_monad
 PKG ocamlgraph
 PKG batteries
 S _build
