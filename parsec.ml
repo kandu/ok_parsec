@@ -12,6 +12,23 @@ type 'a t= 'a parser
 
 
 (* parser generator *)
+
+let any= fun state->
+  let check state=
+    let found= Buffer.nth state.buf state.pos in
+    Ok (found, {state with pos= state.pos+1})
+  in
+  let need= state.pos + 1 - (Buffer.length state.buf) in
+  if need > 0 then
+    let%m[@Lwt] state= input ~len:need state in
+    if state.pos + 1 - (Buffer.length state.buf) > 0 then
+      Lwt.return (Failed (state.pos, "out of bounds"))
+    else
+      Lwt.return (check state)
+  else
+    Lwt.return (check state)
+
+
 let char c= fun state->
   let check state=
     let found= Buffer.nth state.buf state.pos in
@@ -163,6 +180,8 @@ let eof state= Lwt.return
   (if (state.eof && (state.pos >= Buffer.length state.buf))
   then Ok ((), state)
   else Failed (state.pos, "not eof"))
+
+let int= any |>> int_of_char
 
 let num_dec= satisfy (fun c->
   '0' <= c && c <= '9')

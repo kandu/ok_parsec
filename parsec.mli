@@ -3,6 +3,7 @@ type error = pos * string
 type 'a reply = Failed of error | Ok of 'a * Common.state
 type 'a parser = Common.state -> 'a reply Lwt.t
 type 'a t = 'a parser
+val any : Common.state -> char reply Lwt.t
 val char : char -> Common.state -> char reply Lwt.t
 val string : string -> Common.state -> string reply Lwt.t
 val satisfy : (char -> bool) -> Common.state -> char reply Lwt.t
@@ -36,6 +37,7 @@ val notFollowedBy :
   (Common.state -> 'a reply Lwt.t) ->
   string -> Common.state -> unit reply Lwt.t
 val eof : Common.state -> unit reply Lwt.t
+val int : Common.state -> int reply Lwt.t
 val num_dec : Common.state -> char reply Lwt.t
 val num_bin : Common.state -> char reply Lwt.t
 val num_oct : Common.state -> char reply Lwt.t
