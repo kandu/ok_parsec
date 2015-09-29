@@ -141,6 +141,12 @@ let many p=
 let many1 p=
   p >>= fun v-> many p |>> fun l-> v :: l
 
+let rec times num p s=
+  if num > 0 then
+    (p >>= (fun v-> times (num-1) p |>> (fun r-> v::r))) s
+  else
+    (return []) s
+
 let sepBy1 sep p=
   p >>= fun head->
   many (sep >> p) >>= fun body->
@@ -181,7 +187,13 @@ let eof state= Lwt.return
   then Ok ((), state)
   else Failed (state.pos, "not eof"))
 
-let int= any |>> int_of_char
+let int8= any |>> int_of_char
+
+let int16= any >>= fun l-> any |>> fun h-> int_of_char h lsl 8 + int_of_char l
+
+let int32= int16 >>= fun l-> int16 |>> fun h-> Int32.(add (shift_left (of_int h) 16) (of_int l))
+
+let int64= int32 >>= fun l-> int32 |>> fun h-> Int64.(add (shift_left (of_int32 h) 32) (of_int32 l))
 
 let num_dec= satisfy (fun c->
   '0' <= c && c <= '9')

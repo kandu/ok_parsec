@@ -22,6 +22,7 @@ val between :
   'a parser -> 'b parser -> 'c parser -> Common.state -> 'c reply Lwt.t
 val many : 'a parser -> 'a list parser
 val many1 : 'a parser -> Common.state -> 'a list reply Lwt.t
+val times : int -> 'a parser -> 'a list parser
 val sepBy1 : 'a parser -> 'b parser -> Common.state -> 'b list reply Lwt.t
 val sepBy : 'a parser -> 'b parser -> Common.state -> 'b list reply Lwt.t
 val sepEndBy : 'a parser -> 'b parser -> 'b list parser
@@ -37,7 +38,10 @@ val notFollowedBy :
   (Common.state -> 'a reply Lwt.t) ->
   string -> Common.state -> unit reply Lwt.t
 val eof : Common.state -> unit reply Lwt.t
-val int : Common.state -> int reply Lwt.t
+val int8 : Common.state -> int reply Lwt.t
+val int16 : Common.state -> int reply Lwt.t
+val int32 : Common.state -> int32 reply Lwt.t
+val int64 : Common.state -> int64 reply Lwt.t
 val num_dec : Common.state -> char reply Lwt.t
 val num_bin : Common.state -> char reply Lwt.t
 val num_oct : Common.state -> char reply Lwt.t
