@@ -40,8 +40,11 @@ val notFollowedBy :
 val eof : Common.state -> unit reply Lwt.t
 val int8 : Common.state -> int reply Lwt.t
 val int16 : Common.state -> int reply Lwt.t
+val int16_net : Common.state -> int reply Lwt.t
 val int32 : Common.state -> int32 reply Lwt.t
+val int32_net : Common.state -> int32 reply Lwt.t
 val int64 : Common.state -> int64 reply Lwt.t
+val int64_net : Common.state -> int64 reply Lwt.t
 val num_dec : Common.state -> char reply Lwt.t
 val num_bin : Common.state -> char reply Lwt.t
 val num_oct : Common.state -> char reply Lwt.t
