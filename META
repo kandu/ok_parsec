@@ -1,7 +1,7 @@
 name= "ok_parsec"
 version = "0.1"
 description = "A monadic parser combinator library that deal with data of unpredictable length concurrently"
-requires="batteries,ocamlgraph,lwt.unix"
+requires="core_kernel,ocamlgraph,lwt.unix"
 archive(byte)= "ok_parsec.cma"
 archive(native)= "ok_parsec.cmxa"
 

@@ -1,11 +1,11 @@
 open Common
+open Core_kernel.Std
+open Result
 
 type pos= int
 type error= pos * string
 
-type 'a reply=
-  | Failed of error
-  | Ok of 'a * state
+type 'a reply= (('a * state), error) Result.t
 
 type 'a parser= state -> 'a reply Lwt.t
 type 'a t= 'a parser
@@ -22,7 +22,7 @@ let any= fun state->
   if need > 0 then
     let%m[@Lwt] state= input ~len:need state in
     if state.pos + 1 - (Buffer.length state.buf) > 0 then
-      Lwt.return (Failed (state.pos, "out of bounds"))
+      Lwt.return (Error (state.pos, "out of bounds"))
     else
       Lwt.return (check state)
   else
@@ -36,7 +36,7 @@ let char c= fun state->
     if found = c then
       Ok (found, {state with pos= state.pos+1})
     else
-      Failed (
+      Error (
         state.pos,
         sprintf "\"%c\" expected but \"%c\" found" c found)
   in
@@ -44,7 +44,7 @@ let char c= fun state->
   if need > 0 then
     let%m[@Lwt] state= input ~len:need state in
     if state.pos + 1 - (Buffer.length state.buf) > 0 then
-      Lwt.return (Failed (state.pos, "out of bounds"))
+      Lwt.return (Error (state.pos, "out of bounds"))
     else
       Lwt.return (check state)
   else
@@ -59,7 +59,7 @@ let string str= fun state->
     if found = str then
       Ok (found, {state with pos= state.pos+len})
     else
-      Failed (
+      Error (
         state.pos,
         sprintf "\"%s\" expected but \"%s\" found" str found)
   in
@@ -67,7 +67,7 @@ let string str= fun state->
   if need > 0 then
     let%m[@Lwt] state= input ~len:need state in
     if state.pos + len - (Buffer.length state.buf) > 0 then
-      Lwt.return (Failed (state.pos, "out of bounds"))
+      Lwt.return (Error (state.pos, "out of bounds"))
     else
       Lwt.return (check state)
   else
@@ -81,7 +81,7 @@ let satisfy test= fun state->
     if test found then
       Ok (found, {state with pos= state.pos+1})
     else
-      Failed (
+      Error (
         state.pos,
         sprintf "\"%c\" isn't expected" found)
   in
@@ -89,7 +89,7 @@ let satisfy test= fun state->
   if need > 0 then
     let%m[@Lwt] state= input ~len:need state in
     if state.pos + 1 - (Buffer.length state.buf) > 0 then
-      Lwt.return (Failed (state.pos, "out of bounds"))
+      Lwt.return (Error (state.pos, "out of bounds"))
     else
       Lwt.return (check state)
   else
@@ -102,18 +102,18 @@ let regexp re= fun state->
     let len= String.length result in
     Lwt.return (Ok (result, {state with pos= state.pos+len}))
   else
-    Lwt.return (Failed (state.pos, "doesn't match the regexp"))
+    Lwt.return (Error (state.pos, "doesn't match the regexp"))
 
 
 (* combinator *)
-let fail msg= fun state-> Lwt.return (Failed (state.pos, msg))
+let fail msg= fun state-> Lwt.return (Error (state.pos, msg))
 
 let return v= fun state-> Lwt.return (Ok (v, state))
 
 let bind (p: 'a parser) (f: 'a -> 'b parser)= fun state->
   let%m[@Lwt] result= p state in
   match result with
-  | Failed e-> Lwt.return (Failed e)
+  | Error e-> Lwt.return (Error e)
   | Ok (v,state)-> f v state
 
 let (>>=)= bind
@@ -125,7 +125,7 @@ let (>>$) p v= p >> return v
 let (<|>) (p1:'a parser) (p2:'a parser)= fun state->
   let%m[@Lwt] result= p1 state in
   match result with
-  | Failed _ -> p2 state
+  | Error _ -> p2 state
   | Ok _-> Lwt.return result
 
 let between left right p= left >> p << right
@@ -167,36 +167,36 @@ let lookAhead p= fun state->
   let%m[@Lwt] reply= p state in
   Lwt.return (match reply with
   | Ok (r, newState)-> Ok (r, state)
-  | Failed _-> reply)
+  | Error _-> reply)
 
 let followedBy p msg= fun state->
   let%m[@Lwt] reply= p state in
   Lwt.return (match reply with
   | Ok _-> Ok ((), state)
-  | Failed _-> Failed (state.pos, msg))
+  | Error _-> Error (state.pos, msg))
 
 let notFollowedBy p msg= fun state->
   let%m[@Lwt] reply= p state in
   Lwt.return (match reply with
-  | Ok _-> Failed (state.pos, msg)
-  | Failed _-> Ok ((), state))
+  | Ok _-> Error (state.pos, msg)
+  | Error _-> Ok ((), state))
 
 (* parser *)
 let eof state= Lwt.return 
   (if (state.eof && (state.pos >= Buffer.length state.buf))
   then Ok ((), state)
-  else Failed (state.pos, "not eof"))
+  else Error (state.pos, "not eof"))
 
 let int8= any |>> int_of_char
 
 let int16= any >>= fun l-> any |>> fun h-> int_of_char h lsl 8 + int_of_char l
 let int16_net= any >>= fun h-> any |>> fun l-> int_of_char h lsl 8 + int_of_char l
 
-let int32= int16 >>= fun l-> int16 |>> fun h-> Int32.(add (shift_left (of_int h) 16) (of_int l))
-let int32_net= int16_net >>= fun h-> int16_net |>> fun l-> Int32.(add (shift_left (of_int h) 16) (of_int l))
+let int32= int16 >>= fun l-> int16 |>> fun h-> Int32.((+) (shift_left (of_int_exn h) 16) (of_int_exn l))
+let int32_net= int16_net >>= fun h-> int16_net |>> fun l-> Int32.((+) (shift_left (of_int_exn h) 16) (of_int_exn l))
 
-let int64= int32 >>= fun l-> int32 |>> fun h-> Int64.(add (shift_left (of_int32 h) 32) (of_int32 l))
-let int64_net= int32_net >>= fun h-> int32_net |>> fun l-> Int64.(add (shift_left (of_int32 h) 32) (of_int32 l))
+let int64= int32 >>= fun l-> int32 |>> fun h-> Int64.((+) (shift_left (of_int32 h) 32) (of_int32 l))
+let int64_net= int32_net >>= fun h-> int32_net |>> fun l-> Int64.((+) (shift_left (of_int32 h) 32) (of_int32 l))
 
 let num_dec= satisfy (fun c->
   '0' <= c && c <= '9')
