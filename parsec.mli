@@ -51,4 +51,5 @@ val num_oct : Common.state -> char reply Lwt.t
 val num_hex : Common.state -> char reply Lwt.t
 val lowercase : Common.state -> char reply Lwt.t
 val uppercase : Common.state -> char reply Lwt.t
-val parse_string : (Common.state -> 'a) -> string -> 'a
+val parse_string : 'a parser -> string -> 'a reply Lwt.t
+val parse_channel : 'a parser -> Lwt_io.input_channel -> 'a reply Lwt.t

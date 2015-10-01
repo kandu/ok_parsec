@@ -224,3 +224,5 @@ let parse_string parser str=
     (Common.initState
       (Lwt_io.of_bytes ~mode:Lwt_io.input (Lwt_bytes.of_string str)))
 
+let parse_channel parser chan=
+  parser (Common.initState chan)
