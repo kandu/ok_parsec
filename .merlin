@@ -1,6 +1,6 @@
 PKG ppx_ok_monad
 PKG ocamlgraph
-PKG batteries
+PKG core_kernel
 S _build
 B _build
 
