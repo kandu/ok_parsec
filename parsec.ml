@@ -20,7 +20,7 @@ let any= fun state->
   in
   let need= state.pos + 1 - (Buffer.length state.buf) in
   if need > 0 then
-    let%m[@Lwt] state= input ~len:need state in
+    let%m[@Lwt] state= Common.input ~len:need state in
     if state.pos + 1 - (Buffer.length state.buf) > 0 then
       Lwt.return (Error (state.pos, "out of bounds"))
     else
@@ -42,7 +42,7 @@ let char c= fun state->
   in
   let need= state.pos + 1 - (Buffer.length state.buf) in
   if need > 0 then
-    let%m[@Lwt] state= input ~len:need state in
+    let%m[@Lwt] state= Common.input ~len:need state in
     if state.pos + 1 - (Buffer.length state.buf) > 0 then
       Lwt.return (Error (state.pos, "out of bounds"))
     else
@@ -65,7 +65,7 @@ let string str= fun state->
   in
   let need= state.pos + len - (Buffer.length state.buf) in
   if need > 0 then
-    let%m[@Lwt] state= input ~len:need state in
+    let%m[@Lwt] state= Common.input ~len:need state in
     if state.pos + len - (Buffer.length state.buf) > 0 then
       Lwt.return (Error (state.pos, "out of bounds"))
     else
@@ -87,7 +87,7 @@ let satisfy test= fun state->
   in
   let need= state.pos + 1 - (Buffer.length state.buf) in
   if need > 0 then
-    let%m[@Lwt] state= input ~len:need state in
+    let%m[@Lwt] state= Common.input ~len:need state in
     if state.pos + 1 - (Buffer.length state.buf) > 0 then
       Lwt.return (Error (state.pos, "out of bounds"))
     else
