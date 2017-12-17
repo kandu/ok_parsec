@@ -1,9 +1,5 @@
 syntax: glob
 
-_log
-_build
-*.native
-*.byte
 **/*.annot
 
 **/.\#*
@@ -15,4 +11,7 @@ _build
 **/*.a
 **/*.so
 **/*.cm*
+_build
+.merlin
+ok_parsec.install
 
