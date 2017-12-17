@@ -247,5 +247,5 @@ let match_re sm= fun state->
       check sm state
   in
   let%m[@Lwt] (ok, result)= match_re sm state in
-  Lwt.return (ok, Core_kernel.Core_string.of_char_list result)
+  Lwt.return (ok, Core_kernel.Std.String.of_char_list result)
 
