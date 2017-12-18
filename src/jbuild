@@ -6,9 +6,6 @@
   (flags (:standard -safe-string))
   (synopsis "a monadic parser combinator library that deal with data of unpredictable length concurrently")
   (libraries (core_kernel ocamlgraph lwt.unix))
-  (preprocess (per_module
-    ((pps (lwt.ppx)) (common))
-    ((pps (ppx_ok_monad)) (re parsec))
-    ))
+  (preprocess (pps (lwt.ppx -no-sequence)))
   ))
 

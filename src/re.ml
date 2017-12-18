@@ -228,7 +228,7 @@ let match_re sm= fun state->
       let curr= Buffer.nth state.buf state.pos in
       if CharMap.mem curr sm.next then
         let next= CharMap.find curr sm.next in
-        let%m[@Lwt] (ok, s)= match_re next {state with pos= state.pos+1} in
+        let%lwt (ok, s)= match_re next {state with pos= state.pos+1} in
         if ok then
           Lwt.return (ok, curr :: s)
         else
@@ -238,7 +238,7 @@ let match_re sm= fun state->
   and match_re sm state=
     let need= state.pos + 1 - (Buffer.length state.buf) in
     if need > 0 then
-      let%m[@Lwt] state= input ~len:need state in
+      let%lwt state= input ~len:need state in
       if state.pos + 1 - (Buffer.length state.buf) > 0 then
         Lwt.return (sm.isEnd, [])
       else
@@ -246,6 +246,6 @@ let match_re sm= fun state->
     else
       check sm state
   in
-  let%m[@Lwt] (ok, result)= match_re sm state in
+  let%lwt (ok, result)= match_re sm state in
   Lwt.return (ok, Core_kernel.Std.String.of_char_list result)
 
