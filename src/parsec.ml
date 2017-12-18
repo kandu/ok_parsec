@@ -20,7 +20,7 @@ let any= fun state->
   in
   let need= state.pos + 1 - (Buffer.length state.buf) in
   if need > 0 then
-    let%m[@Lwt] state= Common.input ~len:need state in
+    let%lwt state= Common.input ~len:need state in
     if state.pos + 1 - (Buffer.length state.buf) > 0 then
       Lwt.return (Error (state.pos, "out of bounds"))
     else
@@ -42,7 +42,7 @@ let char c= fun state->
   in
   let need= state.pos + 1 - (Buffer.length state.buf) in
   if need > 0 then
-    let%m[@Lwt] state= Common.input ~len:need state in
+    let%lwt state= Common.input ~len:need state in
     if state.pos + 1 - (Buffer.length state.buf) > 0 then
       Lwt.return (Error (state.pos, "out of bounds"))
     else
@@ -65,7 +65,7 @@ let string str= fun state->
   in
   let need= state.pos + len - (Buffer.length state.buf) in
   if need > 0 then
-    let%m[@Lwt] state= Common.input ~len:need state in
+    let%lwt state= Common.input ~len:need state in
     if state.pos + len - (Buffer.length state.buf) > 0 then
       Lwt.return (Error (state.pos, "out of bounds"))
     else
@@ -87,7 +87,7 @@ let satisfy test= fun state->
   in
   let need= state.pos + 1 - (Buffer.length state.buf) in
   if need > 0 then
-    let%m[@Lwt] state= Common.input ~len:need state in
+    let%lwt state= Common.input ~len:need state in
     if state.pos + 1 - (Buffer.length state.buf) > 0 then
       Lwt.return (Error (state.pos, "out of bounds"))
     else
@@ -97,7 +97,7 @@ let satisfy test= fun state->
 
 
 let regexp re= fun state->
-  let%m[@Lwt] (ok, result)= Re.match_re re state in
+  let%lwt (ok, result)= Re.match_re re state in
   if ok then
     let len= String.length result in
     Lwt.return (Ok (result, {state with pos= state.pos+len}))
@@ -111,7 +111,7 @@ let fail msg= fun state-> Lwt.return (Error (state.pos, msg))
 let return v= fun state-> Lwt.return (Ok (v, state))
 
 let bind (p: 'a parser) (f: 'a -> 'b parser)= fun state->
-  let%m[@Lwt] result= p state in
+  let%lwt result= p state in
   match result with
   | Error e-> Lwt.return (Error e)
   | Ok (v,state)-> f v state
@@ -123,7 +123,7 @@ let (|>>) p f= p >>= fun v-> return (f v)
 let (>>$) p v= p >> return v
 
 let (<|>) (p1:'a parser) (p2:'a parser)= fun state->
-  let%m[@Lwt] result= p1 state in
+  let%lwt result= p1 state in
   match result with
   | Error _ -> p2 state
   | Ok _-> Lwt.return result
@@ -164,19 +164,19 @@ let opt default p=
 let option p= p |>> (fun v-> Some v) <|> return None
 
 let lookAhead p= fun state->
-  let%m[@Lwt] reply= p state in
+  let%lwt reply= p state in
   Lwt.return (match reply with
   | Ok (r, newState)-> Ok (r, state)
   | Error _-> reply)
 
 let followedBy p msg= fun state->
-  let%m[@Lwt] reply= p state in
+  let%lwt reply= p state in
   Lwt.return (match reply with
   | Ok _-> Ok ((), state)
   | Error _-> Error (state.pos, msg))
 
 let notFollowedBy p msg= fun state->
-  let%m[@Lwt] reply= p state in
+  let%lwt reply= p state in
   Lwt.return (match reply with
   | Ok _-> Error (state.pos, msg)
   | Error _-> Ok ((), state))
