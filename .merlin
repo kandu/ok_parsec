@@ -1,6 +1,0 @@
-PKG ppx_ok_monad
-PKG ocamlgraph
-PKG core_kernel
-S _build
-B _build
-
