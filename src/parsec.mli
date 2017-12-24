@@ -84,3 +84,4 @@ val lowercase : char parser
 val uppercase : char parser
 val parse_string : 'a parser -> string -> 'a reply Lwt.t
 val parse_channel : 'a parser -> Lwt_io.input_channel -> 'a reply Lwt.t
+val parse_fd : 'a parser -> Lwt_unix.file_descr -> 'a reply Lwt.t

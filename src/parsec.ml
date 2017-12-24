@@ -222,7 +222,11 @@ let uppercase= satisfy (fun c->
 let parse_string parser str=
   parser
     (Common.initState
-      (Lwt_io.of_bytes ~mode:Lwt_io.input (Lwt_bytes.of_string str)))
+      (Chan (Lwt_io.of_bytes ~mode:Lwt_io.input (Lwt_bytes.of_string str))))
 
 let parse_channel parser chan=
-  parser (Common.initState chan)
+  parser (Common.initState (Chan chan))
+
+let parse_fd parser fd=
+  parser (Common.initState (Fd fd))
+

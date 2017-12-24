@@ -1,8 +1,12 @@
+type dataStream=
+  | Chan of Lwt_io.input_channel
+  | Fd of Lwt_unix.file_descr
+
 type state = {
-  chan : Lwt_io.input_channel;
+  dataStream: dataStream;
   buf : Buffer.t;
   eof : bool;
   pos : int;
 }
-val initState : Lwt_io.input_channel -> state
+val initState : dataStream -> state
 val input : ?len:int -> state -> state Lwt.t
