@@ -9,4 +9,5 @@ type state = {
   pos : int;
 }
 val initState : dataStream -> state
+val getBuffered : state -> string Lwt.t
 val input : ?len:int -> state -> state Lwt.t
