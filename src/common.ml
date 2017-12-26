@@ -57,6 +57,28 @@ let initState dataStream= {
   pos= 0;
 }
 
+let getBuffered state=
+  let%lwt inner=
+    match state.dataStream with
+    | Chan chan->
+      Lwt_io.(direct_access chan
+         (fun da->
+           let len= da.da_max - da.da_ptr in
+           let buf= Lwt_bytes.(to_string
+             (extract da.da_buffer da.da_ptr len))
+           in
+           da.da_ptr <- da.da_ptr + len;
+           return buf
+         ))
+    | Fd fd-> return ""
+  in
+  let outer= Buffer.sub
+    state.buf
+    state.pos
+    ((Buffer.length state.buf) - state.pos)
+  in
+  return (outer ^ inner)
+
 let input ?len state=
   if state.eof then
     return state
