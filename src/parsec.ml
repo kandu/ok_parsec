@@ -54,7 +54,7 @@ let char c= fun state->
 let string str= fun state->
   let len= String.length str in
   let check state=
-    let found= Buffer.sub state.buf state.pos len in
+    let found= Buffer.To_string.sub state.buf ~pos:state.pos ~len in
     let open Printf in
     if found = str then
       Ok (found, {state with pos= state.pos+len})
@@ -166,7 +166,7 @@ let option p= p |>> (fun v-> Some v) <|> return None
 let lookAhead p= fun state->
   let%lwt reply= p state in
   Lwt.return (match reply with
-  | Ok (r, newState)-> Ok (r, state)
+  | Ok (r, _newState)-> Ok (r, state)
   | Error _-> reply)
 
 let followedBy p msg= fun state->

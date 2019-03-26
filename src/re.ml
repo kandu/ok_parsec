@@ -68,7 +68,7 @@ let str2reg str=
         let nextTk, lastbuf= getToken nextbuf in
         match nextTk with
         | OpO -> O (curr, buf2reg lastbuf)
-        | OpC-> let curr= match curr with Cl r-> curr | _ -> Cl curr in
+        | OpC-> let curr= match curr with Cl _r-> curr | _ -> Cl curr in
           parse curr lastbuf
         | _ ->
           let next= getItem nextTk in
@@ -164,7 +164,7 @@ let nfa2dfa (nfa:nfa)=
           let (next, nextTransTbl)= nfa2dfa s next_nfaNodes in
           G.add_edge_e dfaG (G.E.create curr (Edge.C c) next);
           NodeSetMap.merge
-            (fun k v1 v2->
+            (fun _key v1 v2->
               match v1 with
               | Some _-> v1
               | None -> v2)
@@ -203,7 +203,7 @@ let dfa2sm (dfa:dfa)=
           let (sm, nextTraversed)= dfa2sm (G.E.dst e) traversed in
           ( CharMap.add (getLabel e) sm cm,
             NodeMap.merge
-              (fun key v1 v2->
+              (fun _key v1 v2->
                 match v1 with
                 | Some _-> v1
                 | None -> v2)
@@ -215,7 +215,7 @@ let dfa2sm (dfa:dfa)=
       curr.next <- cm;
       (curr, traversed)
   in
-  let (sm, traversed)= dfa2sm dfa.head NodeMap.empty in
+  let (sm, _traversed)= dfa2sm dfa.head NodeMap.empty in
   sm
 
 let make str= (dfa2sm (nfa2dfa (reg2nfa (str2reg str))))

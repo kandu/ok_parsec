@@ -10,10 +10,10 @@ tags: [
 ]
 dev-repo: "hg://https://bitbucket.org/zandoye/ok_parsec"
 depends: [
-  "jbuilder" {build}
+  "dune" {build & >= "1.0"}
   "ocamlgraph"
   "lwt"
-  "lwt.ppx"
+  "lwt_ppx"
   "core_kernel" {>= "113.33.00"}
 ]
 
