@@ -1,6 +1,6 @@
 type pos = int
 type error = pos * string
-type 'a reply = ('a * Common.state, error) Core_kernel.Std.Result.t
+type 'a reply = ('a * Common.state, error) Core_kernel.Result.t
 type 'a parser = Common.state -> 'a reply Lwt.t
 type 'a t = 'a parser
 val any : char parser

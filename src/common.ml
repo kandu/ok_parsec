@@ -71,7 +71,7 @@ let getBuffered ?(inner=true) state=
             da.da_ptr <- da.da_ptr + len;
             return buf
           ))
-      | Fd fd-> return ""
+      | Fd _fd-> return ""
     else
       return ""
   in
