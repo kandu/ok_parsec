@@ -247,6 +247,5 @@ let match_re sm= fun state->
       check sm state
   in
   let%lwt (ok, result)= match_re sm state in
-  Lwt.return (ok, Core_kernel.Std.String.of_char_list result)
-  [@@ocaml.warning "-3"]
+  Lwt.return (ok, Core_kernel.String.of_char_list result)
 

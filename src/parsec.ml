@@ -1,11 +1,10 @@
 open Common
-open Core_kernel.Std[@@ocaml.warning "-3"]
 open Result
 
 type pos= int
 type error= pos * string
 
-type 'a reply= (('a * state), error) Result.t
+type 'a reply= (('a * state), error) Core_kernel.Result.t
 
 type 'a parser= state -> 'a reply Lwt.t
 type 'a t= 'a parser
@@ -54,7 +53,7 @@ let char c= fun state->
 let string str= fun state->
   let len= String.length str in
   let check state=
-    let found= Buffer.To_string.sub state.buf ~pos:state.pos ~len in
+    let found= Core_kernel.Buffer.To_string.sub state.buf ~pos:state.pos ~len in
     let open Printf in
     if found = str then
       Ok (found, {state with pos= state.pos+len})
@@ -192,11 +191,15 @@ let int8= any |>> int_of_char
 let int16= any >>= fun l-> any |>> fun h-> int_of_char h lsl 8 + int_of_char l
 let int16_net= any >>= fun h-> any |>> fun l-> int_of_char h lsl 8 + int_of_char l
 
+open Core_kernel
+
 let int32= int16 >>= fun l-> int16 |>> fun h-> Int32.((+) (shift_left (of_int_exn h) 16) (of_int_exn l))
 let int32_net= int16_net >>= fun h-> int16_net |>> fun l-> Int32.((+) (shift_left (of_int_exn h) 16) (of_int_exn l))
 
 let int64= int32 >>= fun l-> int32 |>> fun h-> Int64.((+) (shift_left (of_int32 h) 32) (of_int32 l))
 let int64_net= int32_net >>= fun h-> int32_net |>> fun l-> Int64.((+) (shift_left (of_int32 h) 32) (of_int32 l))
+
+open Stdlib
 
 let num_dec= satisfy (fun c->
   '0' <= c && c <= '9')
