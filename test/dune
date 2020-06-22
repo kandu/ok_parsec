@@ -1,0 +1,7 @@
+(executables
+  (names test)
+  (flags :standard -safe-string)
+  (libraries ok_parsec)
+  (preprocess
+    (pps lwt_ppx)))
+

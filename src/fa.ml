@@ -182,9 +182,7 @@ let display_svg_n g=
   sprintf "dot -Tsvg -o%s %s; xdg-open %s"
     tmp_svg tmp_dot tmp_svg
     |> Sys.command
-    |> ignore;
-  Sys.remove tmp_dot;
-  Sys.remove tmp_svg
+    |> ignore
 
 let display_svg_d g=
   let tmp_dot= Filename.temp_file "graph" ".dot" in
@@ -193,9 +191,7 @@ let display_svg_d g=
   sprintf "dot -Tsvg -o%s %s; xdg-open %s"
     tmp_svg tmp_dot tmp_svg
     |> Sys.command
-    |> ignore;
-  Sys.remove tmp_dot;
-  Sys.remove tmp_svg
+    |> ignore
 
 let display_svg_sm g=
   let tmp_dot= Filename.temp_file "graph" ".dot" in
@@ -204,9 +200,7 @@ let display_svg_sm g=
   sprintf "dot -Tsvg -o%s %s; xdg-open %s"
     tmp_svg tmp_dot tmp_svg
     |> Sys.command
-    |> ignore;
-  Sys.remove tmp_dot;
-  Sys.remove tmp_svg
+    |> ignore
 
 let closureE graph node=
   let rec closureE node traversed=
